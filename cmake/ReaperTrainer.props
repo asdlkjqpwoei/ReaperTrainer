@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <IntDir>$([MSBuild]::NormalizeDirectory(&quot;$(MSBuildProjectDirectory)&quot;, &quot;$(IntDir)&quot;))</IntDir>
+    <ApplicationManifest>$(ReaperTrainerSourceDirectory)app.manifest</ApplicationManifest>
+    <GeneratedFilesDir>$(IntDir)</GeneratedFilesDir>
+    <XamlGeneratedOutputPath>$(IntDir)</XamlGeneratedOutputPath>
+    <MarkupCompilePass1DependsOn>ResolveAssemblyReferences;AddXamlCompilerReferences;$(MarkupCompilePass1DependsOn)</MarkupCompilePass1DependsOn>
+    <MarkupCompilePass2DependsOn>ResolveAssemblyReferences;AddXamlCompilerReferences;$(MarkupCompilePass2DependsOn)</MarkupCompilePass2DependsOn>
+    <GetCppWinRTPlatformWinMDReferencesDependsOn>AddXamlCompilerReferences;$(GetCppWinRTPlatformWinMDReferencesDependsOn)</GetCppWinRTPlatformWinMDReferencesDependsOn>
+    <CppWinRTSetXamlLocalAssemblyDependsOn>CppWinRTCopyWinMDToOutputDirectory;$(CppWinRTSetXamlLocalAssemblyDependsOn)</CppWinRTSetXamlLocalAssemblyDependsOn>
+    <BeforeClCompileTargets>MarkupCompilePass1;MarkupCompilePass2;$(BeforeClCompileTargets)</BeforeClCompileTargets>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile />
+    </ClCompile>
+    <Midl>
+      <!-- C++/WinRT supplies absolute WinMD paths; do not prepend CMake's MIDL output directory. -->
+      <OutputDirectory />
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ReaperTrainerRuntimeObject Include="$(IntDir)ProcessMemory.obj;$(IntDir)ReaperGameSession.obj;$(IntDir)TrainerConfig.obj" />
+  </ItemGroup>
+</Project>

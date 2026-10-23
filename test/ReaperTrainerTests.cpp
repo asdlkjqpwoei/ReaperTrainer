@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 
-int main(int argc, char** argv)
+int wmain(int argc, wchar_t** argv)
 {
     if (argc != 2)
     {

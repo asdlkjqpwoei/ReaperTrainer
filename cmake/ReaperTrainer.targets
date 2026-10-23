@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- Keep project paths relative: mdmerge cannot reliably open Unicode paths from response files. -->
+  <Target Name="CppWinRTMergeProjectWinMDInputs"
+          DependsOnTargets="Midl;GetCppWinRTMdMergeInputs;_CppWinRTGenerateMergeProjectWinMDDependencyCache;$(CppWinRTMergeProjectWinMDInputsDependsOn)"
+          Inputs="$(MSBuildAllProjects);@(CppWinRTMdMergeInputs);@(CustomAdditionalMdMergeInputs)"
+          Outputs="@(_MdMergedOutput);$(CppWinRTMdMergeResponseFile)">
+    <ItemGroup>
+      <_ReaperMdMergeInput Remove="@(_ReaperMdMergeInput)" />
+      <_ReaperMdMergeInput Include="@(CppWinRTMdMergeInputs)">
+        <RelativePath>$([MSBuild]::MakeRelative(&quot;$(MSBuildProjectDirectory)&quot;, &quot;%(FullPath)&quot;))</RelativePath>
+      </_ReaperMdMergeInput>
+    </ItemGroup>
+    <PropertyGroup>
+      <_MdMergeDepth Condition="'$(CppWinRTNamespaceMergeDepth)' != ''">-n:$(CppWinRTNamespaceMergeDepth)</_MdMergeDepth>
+      <_MdMergeDepth Condition="'$(_MdMergeDepth)' == ''">$(CppWinRTMergeDepth)</_MdMergeDepth>
+      <_MdMergeDepth Condition="'$(_MdMergeDepth)' == '' And '$(CppWinRTRootNamespaceAutoMerge)' == 'true'">-n:$(RootNamespace.Split('.').length)</_MdMergeDepth>
+      <_MdMergeDepth Condition="'$(_MdMergeDepth)' == '' And ('@(Page)' != '' Or '@(ApplicationDefinition)' != '')">-n:1</_MdMergeDepth>
+      <_MdMergeParameters Condition="'$(CppWinRTMergeNoValidate)' != 'true'">-v</_MdMergeParameters>
+      <_MdMergeRelativeOutput>$([MSBuild]::MakeRelative(&quot;$(MSBuildProjectDirectory)&quot;, &quot;$(CppWinRTMergedDir)&quot;))</_MdMergeRelativeOutput>
+      <_MdMergeRelativeResponse>$([MSBuild]::MakeRelative(&quot;$(MSBuildProjectDirectory)&quot;, &quot;$(CppWinRTMdMergeResponseFile)&quot;))</_MdMergeRelativeResponse>
+      <_MdMergeParameters>$(_MdMergeParameters) @(CppWinRTMdMergeMetadataDirectories->'-metadata_dir &quot;%(RelativeDir).&quot;', '&#x0d;&#x0a;')</_MdMergeParameters>
+      <_MdMergeParameters>$(_MdMergeParameters) @(_ReaperMdMergeInput->'-i &quot;%(RelativePath)&quot;', '&#x0d;&#x0a;')</_MdMergeParameters>
+      <_MdMergeParameters>$(_MdMergeParameters) -o &quot;$(_MdMergeRelativeOutput.TrimEnd('\'))&quot; -partial $(_MdMergeDepth)</_MdMergeParameters>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(CppWinRTMdMergeResponseFile)"
+                      Lines="$(_MdMergeParameters)"
+                      Overwrite="true" />
+    <MakeDir Directories="$(CppWinRTUnmergedDir);$(CppWinRTMergedDir)" />
+    <Exec Command="&quot;$(MdMergePath)mdmerge.exe&quot; %40&quot;$(_MdMergeRelativeResponse)&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          UseUtf8Encoding="Always"
+          Condition="'@(CppWinRTMdMergeInputs)' != ''" />
+    <ItemGroup>
+      <_MdMergedOutput Remove="@(_MdMergedOutput)" />
+      <_MdMergedOutput Include="$(CppWinRTMergedDir)*.winmd" />
+    </ItemGroup>
+    <Error Condition="'@(CppWinRTMdMergeInputs)' != '' And '@(_MdMergedOutput)' == ''"
+           Text="Metadata merging produced no WinMD output; refusing to reuse missing build artifacts." />
+    <OnError ExecuteTargets="_CppWinRTCleanMdMergeOutputs" />
+  </Target>
+  <Target Name="BuildTrainerRuntimeLibrary"
+          AfterTargets="ClCompile"
+          Inputs="@(ReaperTrainerRuntimeObject);$(MSBuildProjectFullPath);$(MSBuildThisFileFullPath)"
+          Outputs="$(IntDir)ReaperTrainerRuntime.lib">
+    <Lib Sources="@(ReaperTrainerRuntimeObject)"
+         OutputFile="$(IntDir)ReaperTrainerRuntime.lib"
+         ToolPath="$(VCToolsInstallDir)bin\Hostx64\x64\" />
+    <ItemGroup>
+      <FileWrites Include="$(IntDir)ReaperTrainerRuntime.lib" />
+    </ItemGroup>
+  </Target>
+  <!-- CMake's native target compiles generated metadata in the normal C++ pass. -->
+  <Target Name="CompileTrainerXamlMetadata"
+          AfterTargets="CppWinRTComputeXamlGeneratedCompileInputs">
+    <ItemGroup>
+      <ClCompile Update="$(XamlMetaDataProviderCpp)">
+        <CompilerIteration />
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+  <Target Name="AddXamlCompilerReferences">
+    <ItemGroup>
+      <_WinSDKPlatformWinMDs Include="$(WindowsSdkPath)References\$(TargetPlatformVersion)\**\*.winmd" />
+      <ReferencePath Remove="@(_WinSDKPlatformWinMDs)" />
+      <ReferencePath Include="@(_WinSDKPlatformWinMDs)">
+        <IsSystemReference>true</IsSystemReference>
+        <WinMDFile>true</WinMDFile>
+        <ReferenceSourceTarget>ResolveAssemblyReference</ReferenceSourceTarget>
+      </ReferencePath>
+      <XamlReferencesToCompile Include="$(_MuxWinmdDir)Microsoft.UI.Xaml.winmd" />
+      <XamlReferencesToCompile Include="$(_MuxWinmdDir)Microsoft.UI.Text.winmd" />
+      <XamlReferencesToCompile Include="@(_WinSDKPlatformWinMDs)" />
+    </ItemGroup>
+  </Target>
+</Project>

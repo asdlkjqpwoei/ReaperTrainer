@@ -1,54 +1,12 @@
-# Build outputs
+# CMake and MSBuild intermediates
 /build/
+
+# Application and test binaries
 /bin/
-/obj/
-**/bin/
-**/obj/
-/cmake-build-*/
-Debug/
-Release/
-x64/
-Win32/
-*.exe
-*.dll
-*.pdb
-*.obj
-*.o
-*.lib
-*.a
-*.so
-*.dylib
-*.ilk
-*.exp
-*.pch
-*.idb
-*.resources
-*.runtimeconfig.json
-*.deps.json
 
-# CMake generated files
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-CTestTestfile.cmake
-compile_commands.json
-Testing/
+# Local state for the project's Visual Studio and CMake tools
+/.vs/
+/CMakeUserPresets.json
 
-# Visual Studio and local IDE state
-.vs/
-**/.vs/
-*.sln
-*.slnx
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-*.VC.db
-*.VC.VC.opendb
-CMakeSettings.json
-CMakeUserPresets.json
-.vscode/
-.idea/
-
-# Personal
-Notice.md
+# Local maintenance notes
+/Notice.md
